@@ -1,0 +1,30 @@
+# Rust
+target/
+**/*.rs.bk
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.env
+
+# Data & Config (Sensitive)
+anthropic_key.json
+wallet_master.json
+wallets.db
+penguin_data.json
+penguin_trader_data.json
+*.db
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+.Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

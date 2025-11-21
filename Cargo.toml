@@ -1,0 +1,56 @@
+[package]
+name = "penguin-ai-trader"
+version = "1.0.0"
+edition = "2021"
+default-run = "penguin"
+
+[lib]
+name = "penguin_trader"
+path = "src/lib.rs"
+
+[[bin]]
+name = "penguin"
+path = "penguin_ai_trader.rs"
+
+[[bin]]
+name = "indicators-example"
+path = "src/indicators_example.rs"
+
+[[bin]]
+name = "strategy-example"
+path = "src/strategy_example.rs"
+
+[[bin]]
+name = "penguin-gui"
+path = "src/gui.rs"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+colored = "2.0"
+chrono = { version = "0.4", features = ["serde"] }
+ta = "0.5"
+tokio = { version = "1.0", features = ["full"] }
+egui = "0.27"
+eframe = { version = "0.27", default-features = false, features = ["glow", "default_fonts"] }
+futures-util = "0.3"
+tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
+
+# Phase 3: Wallet generation & encryption dependencies
+sha2 = "0.10"
+rand = "0.8"
+aes-gcm = "0.10"
+argon2 = "0.5"
+hex = "0.4"
+rusqlite = { version = "0.31", features = ["bundled"] }
+bs58 = "0.5"
+ethers = { version = "2.0.14", features = ["legacy"] }
+solana-client = "1.18"
+solana-sdk = "1.18"
+bdk = "0.29"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
