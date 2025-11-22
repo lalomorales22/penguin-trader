@@ -1075,22 +1075,25 @@ class PenguinTrader:
             print(f"{Fore.YELLOW}{Style.BRIGHT}WALLET DESK & SPOT TRADES")
             print(f"{Fore.CYAN}{'='*70}")
             print(f"{Fore.WHITE}1. View wallets & balances")
-            print(f"{Fore.WHITE}2. Add or update wallet address")
-            print(f"{Fore.WHITE}3. Buy spot crypto (USD → coin)")
-            print(f"{Fore.WHITE}4. Sell spot crypto (coin → USD)")
-            print(f"{Fore.WHITE}5. Send crypto to external wallet")
+            print(f"{Fore.WHITE}2. Generate new wallet")
+            print(f"{Fore.WHITE}3. Import wallet from private key")
+            print(f"{Fore.WHITE}4. Buy spot crypto (USD → coin)")
+            print(f"{Fore.WHITE}5. Sell spot crypto (coin → USD)")
+            print(f"{Fore.WHITE}6. Send crypto to external wallet")
             print(f"{Fore.WHITE}0. Back to main menu")
 
             choice = input(f"\n{Fore.CYAN}Select option: ").strip()
             if choice == "1":
                 self._show_wallet_overview()
             elif choice == "2":
-                self._prompt_wallet_update()
+                self._prompt_generate_wallet()
             elif choice == "3":
-                self._prompt_spot_buy()
+                self._prompt_import_wallet()
             elif choice == "4":
-                self._prompt_spot_sell()
+                self._prompt_spot_buy()
             elif choice == "5":
+                self._prompt_spot_sell()
+            elif choice == "6":
                 self._prompt_send_crypto()
             elif choice == "0":
                 break
@@ -1117,54 +1120,37 @@ class PenguinTrader:
             print(f"     Paper Balance: {balance:.6f} {symbol} ({Fore.GREEN}${usd_value:,.2f}{Fore.WHITE})")
         input(f"\n{Fore.CYAN}Press Enter to continue...")
 
-    def _prompt_wallet_update(self):
-        symbol = input(f"\n{Fore.CYAN}Symbol to configure (BTC/ETH/SOL/...): ").strip().upper()
+    def _prompt_generate_wallet(self):
+        """Prompt user to select chain and generate new wallet"""
+        print(f"\n{Fore.CYAN}{'='*70}")
+        print(f"{Fore.YELLOW}{Style.BRIGHT}GENERATE NEW WALLET")
+        print(f"{Fore.CYAN}{'='*70}")
+        print(f"\n{Fore.WHITE}Supported chains:")
+        print(f"{Fore.CYAN}BTC {Fore.WHITE}• {Fore.CYAN}ETH {Fore.WHITE}• {Fore.CYAN}SOL {Fore.WHITE}• {Fore.CYAN}BNB {Fore.WHITE}• {Fore.CYAN}XRP {Fore.WHITE}• {Fore.CYAN}ADA")
+
+        symbol = input(f"\n{Fore.CYAN}Select chain to generate wallet for: ").strip().upper()
         if symbol not in SUPPORTED_COINS:
             print(f"{Fore.RED}Unsupported symbol")
+            input(f"\n{Fore.CYAN}Press Enter to continue...")
             return
-        
-        print(f"\n{Fore.YELLOW}Options:")
-        print(f"{Fore.WHITE}1. Import existing wallet (provide address/private key)")
-        print(f"{Fore.WHITE}2. Generate new {symbol} wallet")
-        option = input(f"{Fore.CYAN}Choose option: ").strip()
-        
-        if option == "2":
-            self._generate_new_wallet(symbol)
+
+        self._generate_new_wallet(symbol)
+
+    def _prompt_import_wallet(self):
+        """Prompt user to select chain and import wallet from private key"""
+        print(f"\n{Fore.CYAN}{'='*70}")
+        print(f"{Fore.YELLOW}{Style.BRIGHT}IMPORT WALLET FROM PRIVATE KEY")
+        print(f"{Fore.CYAN}{'='*70}")
+        print(f"\n{Fore.WHITE}Supported chains:")
+        print(f"{Fore.CYAN}BTC {Fore.WHITE}• {Fore.CYAN}ETH {Fore.WHITE}• {Fore.CYAN}SOL {Fore.WHITE}• {Fore.CYAN}BNB {Fore.WHITE}• {Fore.CYAN}XRP")
+
+        symbol = input(f"\n{Fore.CYAN}Select chain to import wallet for: ").strip().upper()
+        if symbol not in ["BTC", "ETH", "SOL", "BNB", "XRP"]:
+            print(f"{Fore.RED}Unsupported symbol for import")
+            input(f"\n{Fore.CYAN}Press Enter to continue...")
             return
-        
-        # Import existing wallet
-        address = input(f"{Fore.CYAN}Wallet address for {symbol}: ").strip()
-        private_key = input(f"{Fore.CYAN}Private key/seed (optional, leave blank to skip): ").strip()
-        label = input(f"{Fore.CYAN}Label (optional): ").strip()
-        now = datetime.now(timezone.utc).isoformat()
-        wallet_entry = self.data["wallets"].get(symbol, {})
-        wallet_entry.update({
-            "address": address or wallet_entry.get("address"),
-            "privateKey": private_key or wallet_entry.get("privateKey"),
-            "label": label or wallet_entry.get("label"),
-            "spotBalance": wallet_entry.get("spotBalance", 0.0),
-            "createdAt": wallet_entry.get("createdAt", now),
-            "updatedAt": now
-        })
-        self.data["wallets"][symbol] = wallet_entry
-        if symbol == "BTC":
-            self.data["wallet"] = {
-                "address": wallet_entry.get("address"),
-                "private_key": wallet_entry.get("privateKey"),
-                "created_at": wallet_entry.get("createdAt", now)
-            }
-        
-        # Try to fetch real balance
-        if address:
-            print(f"\n{Fore.YELLOW}Fetching balance from blockchain...")
-            real_balance = self._fetch_blockchain_balance(symbol, address)
-            if real_balance is not None:
-                wallet_entry["spotBalance"] = real_balance
-                print(f"{Fore.GREEN}✓ Loaded balance: {real_balance:.6f} {symbol}")
-        
-        self.save_data()
-        print(f"{Fore.GREEN}✓ Wallet updated for {symbol}")
-        input(f"\n{Fore.CYAN}Press Enter to continue...")
+
+        self._import_wallet_from_private_key(symbol)
 
     def _prompt_spot_buy(self):
         symbol = input(f"\n{Fore.CYAN}Symbol to buy: ").strip().upper()
@@ -2434,6 +2420,145 @@ class PenguinTrader:
         print(f"\n{Fore.GREEN}✓ Journal exported to {filename}")
         input(f"\n{Fore.CYAN}Press Enter to continue...")
     
+    def _validate_private_key(self, symbol: str, private_key: str) -> tuple[bool, Optional[str]]:
+        """Validate and derive address from private key for given blockchain
+        Returns: (is_valid, derived_address or None)
+        """
+        try:
+            if symbol == "BTC":
+                return self._validate_btc_private_key(private_key)
+            elif symbol == "ETH":
+                return self._validate_eth_private_key(private_key)
+            elif symbol == "SOL":
+                return self._validate_sol_private_key(private_key)
+            elif symbol == "BNB":
+                return self._validate_bnb_private_key(private_key)
+            elif symbol == "XRP":
+                return self._validate_xrp_private_key(private_key)
+            else:
+                return False, None
+        except Exception as e:
+            print(f"{Fore.YELLOW}Validation error: {e}")
+            return False, None
+
+    def _validate_btc_private_key(self, private_key: str) -> tuple[bool, Optional[str]]:
+        """Validate Bitcoin private key (WIF format)"""
+        try:
+            key = Key(private_key)
+            return True, key.address
+        except:
+            return False, None
+
+    def _validate_eth_private_key(self, private_key: str) -> tuple[bool, Optional[str]]:
+        """Validate Ethereum private key (hex format)"""
+        try:
+            if not private_key.startswith('0x'):
+                private_key = '0x' + private_key
+            account = Account.from_key(private_key)
+            return True, account.address
+        except:
+            return False, None
+
+    def _validate_sol_private_key(self, private_key: str) -> tuple[bool, Optional[str]]:
+        """Validate Solana private key (base58 format)"""
+        try:
+            key_bytes = base58.b58decode(private_key)
+            keypair = Keypair.from_bytes(key_bytes)
+            return True, str(keypair.pubkey())
+        except:
+            return False, None
+
+    def _validate_bnb_private_key(self, private_key: str) -> tuple[bool, Optional[str]]:
+        """Validate BNB private key (same as Ethereum)"""
+        return self._validate_eth_private_key(private_key)
+
+    def _validate_xrp_private_key(self, private_key: str) -> tuple[bool, Optional[str]]:
+        """Validate XRP seed/private key"""
+        try:
+            wallet = XRPLWallet.from_seed(private_key)
+            return True, wallet.address
+        except:
+            return False, None
+
+    def _import_wallet_from_private_key(self, symbol: str):
+        """Import wallet from private key with validation"""
+        print(f"\n{Fore.CYAN}{'='*70}")
+        print(f"{Fore.YELLOW}{Style.BRIGHT}IMPORT {symbol} WALLET FROM PRIVATE KEY")
+        print(f"{Fore.CYAN}{'='*70}")
+
+        # Show format hints
+        format_hints = {
+            "BTC": "WIF format (starts with 5, K, or L)",
+            "ETH": "Hex format (64 characters, with or without 0x prefix)",
+            "SOL": "Base58 encoded private key",
+            "BNB": "Hex format (same as Ethereum)",
+            "XRP": "Seed format (starts with 's')"
+        }
+
+        print(f"{Fore.WHITE}Expected format: {Fore.CYAN}{format_hints.get(symbol, 'Check documentation')}")
+        private_key = input(f"\n{Fore.CYAN}Enter private key: ").strip()
+
+        if not private_key:
+            print(f"{Fore.RED}Private key cannot be empty")
+            return
+
+        print(f"\n{Fore.YELLOW}Validating private key...")
+        is_valid, derived_address = self._validate_private_key(symbol, private_key)
+
+        if not is_valid:
+            print(f"{Fore.RED}✗ Invalid private key format for {symbol}")
+            print(f"{Fore.YELLOW}Please check the format and try again.")
+            input(f"\n{Fore.CYAN}Press Enter to continue...")
+            return
+
+        print(f"{Fore.GREEN}✓ Valid private key!")
+        print(f"{Fore.WHITE}Derived address: {Fore.GREEN}{derived_address}")
+
+        # Optional label
+        label = input(f"\n{Fore.CYAN}Label (optional, press Enter for default): ").strip()
+        if not label:
+            label = f"Imported {symbol} Wallet"
+
+        # Fetch blockchain balance
+        print(f"\n{Fore.YELLOW}Fetching balance from blockchain...")
+        real_balance = self._fetch_blockchain_balance(symbol, derived_address)
+
+        if real_balance is not None:
+            print(f"{Fore.GREEN}✓ Balance: {real_balance:.6f} {symbol}")
+        else:
+            print(f"{Fore.YELLOW}Could not fetch balance, starting with 0")
+            real_balance = 0.0
+
+        # Save wallet
+        now = datetime.now(timezone.utc).isoformat()
+        self.data["wallets"][symbol] = {
+            "address": derived_address,
+            "privateKey": private_key,
+            "label": label,
+            "spotBalance": real_balance,
+            "createdAt": now,
+            "updatedAt": now
+        }
+
+        # Special handling for BTC (legacy support)
+        if symbol == "BTC":
+            self.data["wallet"] = {
+                "address": derived_address,
+                "private_key": private_key,
+                "created_at": now
+            }
+
+        self.save_data()
+
+        print(f"\n{Fore.GREEN}{'='*70}")
+        print(f"{Fore.GREEN}{Style.BRIGHT}✓ WALLET IMPORTED SUCCESSFULLY!")
+        print(f"{Fore.GREEN}{'='*70}")
+        print(f"{Fore.WHITE}Symbol: {Fore.CYAN}{symbol}")
+        print(f"{Fore.WHITE}Address: {Fore.CYAN}{derived_address}")
+        print(f"{Fore.WHITE}Label: {Fore.CYAN}{label}")
+        print(f"{Fore.WHITE}Balance: {Fore.GREEN}{real_balance:.6f} {symbol}")
+        input(f"\n{Fore.CYAN}Press Enter to continue...")
+
     def _generate_new_wallet(self, symbol: str):
         """Generate a new wallet for the specified blockchain"""
         if symbol == "BTC":

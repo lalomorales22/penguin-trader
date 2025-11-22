@@ -139,6 +139,114 @@ pub fn generate_wallet(
     Ok((address, private_key, mnemonic))
 }
 
+/// Import wallet from private key for Bitcoin
+pub fn import_bitcoin_wallet(private_key_hex: &str) -> Result<String, String> {
+    let private_key = hex::decode(private_key_hex)
+        .map_err(|_| "Invalid hex format for Bitcoin private key".to_string())?;
+
+    if private_key.len() != 32 {
+        return Err("Bitcoin private key must be 32 bytes".to_string());
+    }
+
+    let public_key = derive_public_key(&private_key);
+    let mut hasher = Sha256::new();
+    hasher.update(&public_key);
+    let hash = hasher.finalize();
+
+    let address = format!("bc1{}", hex::encode(&hash[..20]));
+    Ok(address)
+}
+
+/// Import wallet from private key for Ethereum/BNB
+pub fn import_ethereum_wallet(private_key_hex: &str) -> Result<String, String> {
+    let private_key_hex = if private_key_hex.starts_with("0x") {
+        &private_key_hex[2..]
+    } else {
+        private_key_hex
+    };
+
+    let private_key = hex::decode(private_key_hex)
+        .map_err(|_| "Invalid hex format for Ethereum private key".to_string())?;
+
+    if private_key.len() != 32 {
+        return Err("Ethereum private key must be 32 bytes".to_string());
+    }
+
+    let public_key = derive_public_key(&private_key);
+    let mut hasher = Sha256::new();
+    hasher.update(&public_key);
+    let hash = hasher.finalize();
+
+    let address = format!("0x{}", hex::encode(&hash[hash.len() - 20..]));
+    Ok(address)
+}
+
+/// Import wallet from private key for Solana
+pub fn import_solana_wallet(private_key_hex: &str) -> Result<String, String> {
+    let private_key = hex::decode(private_key_hex)
+        .map_err(|_| "Invalid hex format for Solana private key".to_string())?;
+
+    if private_key.len() != 32 {
+        return Err("Solana private key must be 32 bytes".to_string());
+    }
+
+    let public_key = derive_public_key(&private_key);
+    let address = bs58::encode(&public_key).into_string();
+    Ok(address)
+}
+
+/// Import wallet from private key for XRP
+pub fn import_xrp_wallet(private_key_hex: &str) -> Result<String, String> {
+    let private_key = hex::decode(private_key_hex)
+        .map_err(|_| "Invalid hex format for XRP private key".to_string())?;
+
+    if private_key.len() != 32 {
+        return Err("XRP private key must be 32 bytes".to_string());
+    }
+
+    let public_key = derive_public_key(&private_key);
+    let mut hasher = Sha256::new();
+    hasher.update(&public_key);
+    let hash = hasher.finalize();
+
+    let address_data = [&[0x05][..], &hash[..20]].concat();
+    let address = format!("r{}", bs58::encode(&address_data).into_string());
+    Ok(address)
+}
+
+/// Import wallet from private key for Cardano
+pub fn import_cardano_wallet(private_key_hex: &str) -> Result<String, String> {
+    let private_key = hex::decode(private_key_hex)
+        .map_err(|_| "Invalid hex format for Cardano private key".to_string())?;
+
+    if private_key.len() != 32 {
+        return Err("Cardano private key must be 32 bytes".to_string());
+    }
+
+    let public_key = derive_public_key(&private_key);
+    let mut hasher = Sha256::new();
+    hasher.update(&public_key);
+    let hash = hasher.finalize();
+
+    let address = format!("addr1{}", hex::encode(&hash[..28]));
+    Ok(address)
+}
+
+/// Import wallet from private key for any supported network
+pub fn import_wallet_from_private_key(
+    network: Network,
+    private_key: &str,
+) -> Result<String, String> {
+    match network {
+        Network::Bitcoin => import_bitcoin_wallet(private_key),
+        Network::Ethereum => import_ethereum_wallet(private_key),
+        Network::Solana => import_solana_wallet(private_key),
+        Network::Ripple => import_xrp_wallet(private_key),
+        Network::Cardano => import_cardano_wallet(private_key),
+        Network::Bnb => import_ethereum_wallet(private_key), // BNB uses Ethereum format
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
