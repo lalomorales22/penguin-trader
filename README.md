@@ -70,7 +70,7 @@ Built in Rust for speed, safety, and reliability. Integrates Claude AI for marke
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://www.github.com/lalomorales22/penguin-trader
 cd penguin-trader
 
 # Build release version
