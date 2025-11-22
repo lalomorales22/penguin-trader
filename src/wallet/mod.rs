@@ -5,7 +5,7 @@ pub mod balance;
 pub mod sender;
 
 pub use encryption::{decrypt, encrypt, verify_password, EncryptedData};
-pub use generator::{generate_mnemonic, generate_wallet};
+pub use generator::{generate_mnemonic, generate_wallet, import_wallet_from_private_key};
 pub use storage::{WalletStorage, ChartPoint, ChartSnapshot, ChartView};
 pub use balance::{Balance, fetch_balance, estimate_fee};
 pub use sender::{Transaction, TransactionStatus, send_transaction, check_transaction_status};

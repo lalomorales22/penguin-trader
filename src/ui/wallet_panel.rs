@@ -99,7 +99,14 @@ impl WalletPanel {
             }
 
             if ui
-                .button(RichText::new("Send").color(theme.blue).strong())
+                .button(RichText::new("Import Wallet").color(theme.blue).strong())
+                .clicked()
+            {
+                self.generate_dialog.open_import();
+            }
+
+            if ui
+                .button(RichText::new("Send").strong())
                 .clicked()
             {
                 if let Some(idx) = self.selected {
