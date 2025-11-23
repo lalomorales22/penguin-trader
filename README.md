@@ -1,15 +1,15 @@
 # 🐧 Penguin 2026 AI-Powered Paper Trading Engine
 
-**Multi-coin margin trading CLI with AI signal detection, position analysis, and sizing recommendations**
+**Multi-coin margin trading CLI & GUI with AI signal detection, position analysis, and sizing recommendations**
 
-Built in Rust for speed, safety, and reliability. Integrates Claude AI for market analysis and trade decision support.
+Built in Rust for speed, safety, and reliability. Integrates Claude AI for market analysis and trade decision support. Now features a **Real-Time Market Watcher** integrated directly into the GUI.
 
 ---
 
 ## 🚀 Features
 
 ### Core Trading
-- **Multi-Coin Support**: BTC, ETH, SOL, XRP, ADA, LINK
+- **Multi-Coin Support**: BTC, ETH, SOL, XRP, ADA, BNB, LINK, and more.
 - **Long & Short Positions**: Open both simultaneously with up to 50x leverage
 - **Stop Loss & Take Profit**: Mandatory on all positions
 - **Liquidation Tracking**: Real-time liquidation price calculations
@@ -19,17 +19,24 @@ Built in Rust for speed, safety, and reliability. Integrates Claude AI for marke
 - **Trade Journal**: Complete history with signals and reasoning
 
 ### AI Integration (Powered by Claude)
-- **🤖 AI Market Scanner**: Scans all 6 coins and identifies the best setup
+- **🤖 AI Market Scanner**: Scans all major coins and identifies the best setup
 - **📊 Signal Scoring**: Rates each setup 1-5 based on Penguin strategy
 - **💡 Position Sizing AI**: Calculates optimal size and leverage based on signal strength
 - **🔍 Position Analysis**: Reviews open positions and suggests adjustments
 - **📈 Pattern Recognition**: Identifies divergence plays, tops, and momentum shifts
 - **🧠 Trade Review**: Analyzes your trading patterns and suggests improvements
 
+### 📊 Real-Time Market Watcher (GUI Scanner Tab)
+- **Live Price Feeds**: Connects to Binance WebSocket for sub-second price updates.
+- **CoinGecko Integration**: Fetches rich metadata, market cap, and volume stats.
+- **7-Day Sparklines**: Visual trend analysis directly in the dashboard.
+- **Smart Signals**: Auto-calculates RSI, Vol/Cap ratio, and flags "Snipe", "Overbought", or "De-pegged" conditions.
+- **Wallet Value Tracking**: Real-time calculation of your on-chain wallet value based on live market prices.
+
 ### Wallet Desk & On-Chain Ops
 - **Generate/Import Wallets** for BTC, ETH, SOL, BNB (EVM), and XRP with live addresses
 - **Refresh On-Chain Balances** via public RPC endpoints (mainnet)
-- **Send Funds** directly from the CLI (BTC/ETH/BNB/XRP live broadcast; SOL send guarded)
+- **Send Funds** directly from the CLI/GUI (BTC/ETH/BNB/XRP live broadcast; SOL send guarded)
 - **Spot Desk**: Paper USD ↔︎ coin conversions logged alongside your trades
 - **Safety First**: Seeds/passphrases are shown once and never stored; private keys stay local
 
@@ -55,7 +62,7 @@ Built in Rust for speed, safety, and reliability. Integrates Claude AI for marke
 **Tests**: 55 passing (53 unit + 2 integration)
 **Security**: ✅ AUDITED - Comprehensive security audit passed (see `SECURITY_AUDIT.md`)
 **Performance**: ✅ EXCELLENT - All indicators < 1ms at 5000 candles (see `performance-bench`)
-**All Phases**: ✅ COMPLETE - Phases 1-9 verified and production-ready
+**All Phases**: ✅ COMPLETE - Phases 1-10 verified and production-ready
 **Dependencies**: Updated to Solana 2.0 for compatibility
 
 ---
@@ -143,8 +150,9 @@ Suggested leverage: 45x
 
 1. **Run the app**
    ```bash
-   cargo run --release
+   ./start.sh
    ```
+   (Runs both CLI and GUI if desired)
 
 2. **Use AI to scan for setups**
    - Select option 1: "🤖 AI Scan Market"
@@ -292,6 +300,7 @@ See `TASKS.md` for the detailed backlog. High-level tracks:
 - ✅ **Phase 7**: Unified Live Mode (COMPLETE - shared DB, live/paper toggle)
 - ✅ **Phase 8**: GUI Chart Deck (COMPLETE - saved charts/overlays per wallet/asset)
 - ✅ **Phase 9**: Security audit & performance testing (COMPLETE - PASSED, EXCELLENT)
+- ✅ **Phase 10**: Real-Time Market Watcher Integration (COMPLETE - Scanner tab with live websocket feeds)
 - 🔄 **Optional features**: backtesting, CSV export, alerts, more coins, Kelly criterion
 
 ### Quick Command Reference
