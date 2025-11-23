@@ -33,6 +33,16 @@ Built in Rust for speed, safety, and reliability. Integrates Claude AI for marke
 - **Smart Signals**: Auto-calculates RSI, Vol/Cap ratio, and flags "Snipe", "Overbought", or "De-pegged" conditions.
 - **Wallet Value Tracking**: Real-time calculation of your on-chain wallet value based on live market prices.
 
+### 🔍 DexScreener Integration (GUI DexScreener Tab)
+- **Latest Token Discovery**: Fetches the latest trading pairs across all DEX platforms.
+- **Multi-Chain Support**: Track tokens across Ethereum, Solana, BSC, Polygon, Avalanche, Arbitrum, Optimism, and Base.
+- **Live DEX Data**: Real-time price, volume, liquidity, and transaction data from DexScreener API.
+- **Smart Filters**: Filter by chain, liquidity, volume, token age, and trending status.
+- **Signal Detection**: Flags "FRESH" (new tokens), "TRENDING" (high momentum), "RELIABLE" (high liquidity), and more.
+- **Token Search**: Deep search functionality to find specific tokens by name, symbol, or address.
+- **Buy/Sell Ratio**: Track market sentiment with 1-hour buy/sell transaction ratios.
+- **Auto-Refresh**: Updates every 30 seconds to keep data current.
+
 ### Wallet Desk & On-Chain Ops
 - **Generate/Import Wallets** for BTC, ETH, SOL, BNB (EVM), and XRP with live addresses
 - **Refresh On-Chain Balances** via public RPC endpoints (mainnet)
@@ -301,6 +311,7 @@ See `TASKS.md` for the detailed backlog. High-level tracks:
 - ✅ **Phase 8**: GUI Chart Deck (COMPLETE - saved charts/overlays per wallet/asset)
 - ✅ **Phase 9**: Security audit & performance testing (COMPLETE - PASSED, EXCELLENT)
 - ✅ **Phase 10**: Real-Time Market Watcher Integration (COMPLETE - Scanner tab with live websocket feeds)
+- ✅ **Phase 11**: DexScreener Integration (COMPLETE - Live token scout with multi-chain support)
 - 🔄 **Optional features**: backtesting, CSV export, alerts, more coins, Kelly criterion
 
 ### Quick Command Reference

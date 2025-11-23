@@ -7,6 +7,7 @@ use crate::trading::SharedDataStore;
 use crate::ui::chart_deck::ChartDeckPanel;
 use crate::ui::positions_panel::{PositionRow, PositionsPanel};
 use crate::ui::scanner_panel::ScannerPanel;
+use crate::ui::dexscreener_panel::DexScreenerPanel;
 use crate::ui::theme::Theme;
 use crate::ui::wallet_panel::{WalletEntry, WalletPanel};
 use crate::ui::{generate_dialog::GeneratedWalletPreview, send_dialog::SendRequest};
@@ -17,6 +18,7 @@ use crate::wallet::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Tab {
     Scanner,
+    DexScreener,
     Positions,
     Wallets,
     Charts,
@@ -56,6 +58,7 @@ pub struct DashboardApp {
     theme: Theme,
     active_tab: Tab,
     pub scanner: ScannerPanel,
+    pub dexscreener: DexScreenerPanel,
     pub positions: PositionsPanel,
     pub wallets: WalletPanel,
     pub chart_deck: ChartDeckPanel,
@@ -88,10 +91,17 @@ impl DashboardApp {
             ScannerPanel::new()
         };
 
+        // Initialize DexScreenerPanel within the runtime context
+        let dexscreener = {
+            let _guard = runtime.enter();
+            DexScreenerPanel::new()
+        };
+
         let app = DashboardApp {
             theme,
             active_tab: Tab::Scanner,
             scanner,
+            dexscreener,
             positions: PositionsPanel::new(),
             wallets: WalletPanel::new(),
             chart_deck: ChartDeckPanel::new(),
@@ -212,6 +222,7 @@ impl DashboardApp {
         ui.horizontal(|ui| {
             for (tab, label) in [
                 (Tab::Scanner, "Scanner"),
+                (Tab::DexScreener, "DexScreener"),
                 (Tab::Positions, "Positions"),
                 (Tab::Wallets, "Wallets"),
                 (Tab::Charts, "Chart Deck"),
@@ -229,6 +240,7 @@ impl DashboardApp {
     fn tick(&mut self) {
         if self.last_scan.elapsed() >= Duration::from_secs(5) {
             self.scanner.refresh();
+            self.dexscreener.refresh();
             self.last_scan = Instant::now();
         }
     }
@@ -555,6 +567,7 @@ impl eframe::App for DashboardApp {
 
         egui::CentralPanel::default().show(ctx, |ui| match self.active_tab {
             Tab::Scanner => self.scanner.show(ui, &self.theme),
+            Tab::DexScreener => self.dexscreener.show(ui, &self.theme),
             Tab::Positions => self.positions.show(ui, &self.theme),
             Tab::Wallets => self.wallets.show(ctx, ui, &self.theme),
             Tab::Charts => self
@@ -601,6 +614,10 @@ mod tests {
             scanner: {
                 let _guard = runtime.enter();
                 ScannerPanel::new()
+            },
+            dexscreener: {
+                let _guard = runtime.enter();
+                DexScreenerPanel::new()
             },
             positions: PositionsPanel::new(),
             wallets: WalletPanel::new(),
