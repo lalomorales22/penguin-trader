@@ -9,32 +9,21 @@ use crate::ui::theme::Theme;
 // --- DexScreener API Data Structures ---
 
 #[derive(Debug, Deserialize, Clone)]
-struct TokenProfile {
-    #[serde(rename = "chainId")]
-    chain_id: Option<String>,
-    #[serde(rename = "tokenAddress")]
-    token_address: Option<String>,
-    #[serde(default)]
-    url: String,
-    #[serde(default)]
-    icon: Option<String>,
-    #[serde(default)]
-    description: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
 struct PairData {
     #[serde(rename = "chainId")]
     chain_id: String,
     #[serde(rename = "dexId")]
     dex_id: String,
+    #[allow(dead_code)]
     url: String,
     #[serde(rename = "pairAddress")]
     pair_address: String,
     #[serde(rename = "baseToken")]
     base_token: TokenInfo,
+    #[allow(dead_code)]
     #[serde(rename = "quoteToken")]
     quote_token: TokenInfo,
+    #[allow(dead_code)]
     #[serde(rename = "priceNative")]
     price_native: Option<String>,
     #[serde(rename = "priceUsd")]
@@ -59,12 +48,15 @@ struct TokenInfo {
 
 #[derive(Debug, Deserialize, Clone)]
 struct TxnData {
+    #[allow(dead_code)]
     #[serde(default)]
     m5: Option<TxnCounts>,
     #[serde(default)]
     h1: Option<TxnCounts>,
+    #[allow(dead_code)]
     #[serde(default)]
     h6: Option<TxnCounts>,
+    #[allow(dead_code)]
     #[serde(default)]
     h24: Option<TxnCounts>,
 }
@@ -79,16 +71,20 @@ struct TxnCounts {
 struct VolumeData {
     #[serde(default)]
     h24: f64,
+    #[allow(dead_code)]
     #[serde(default)]
     h6: f64,
+    #[allow(dead_code)]
     #[serde(default)]
     h1: f64,
+    #[allow(dead_code)]
     #[serde(default)]
     m5: f64,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 struct PriceChange {
+    #[allow(dead_code)]
     #[serde(default)]
     m5: f64,
     #[serde(default)]
@@ -103,19 +99,15 @@ struct PriceChange {
 struct LiquidityData {
     #[serde(default)]
     usd: f64,
+    #[allow(dead_code)]
     #[serde(default)]
     base: f64,
+    #[allow(dead_code)]
     #[serde(default)]
     quote: f64,
 }
 
-// Response wrappers
-#[derive(Debug, Deserialize)]
-struct LatestTokenProfilesResponse {
-    #[serde(default)]
-    data: Vec<TokenProfile>,
-}
-
+// Response wrapper
 #[derive(Debug, Deserialize)]
 struct PairsResponse {
     #[serde(default)]
@@ -178,21 +170,6 @@ fn format_price(price: f64) -> String {
 }
 
 // --- DexScreener API Calls ---
-
-async fn fetch_latest_token_profiles() -> Result<Vec<TokenProfile>, Box<dyn std::error::Error>> {
-    let url = "https://api.dexscreener.com/token-profiles/latest/v1";
-    let client = reqwest::Client::builder()
-        .user_agent("penguin-trader-v1")
-        .build()?;
-    let resp = client.get(url).send().await?;
-
-    if resp.status().is_success() {
-        let data: Vec<TokenProfile> = resp.json().await?;
-        Ok(data)
-    } else {
-        Err(format!("API returned status: {}", resp.status()).into())
-    }
-}
 
 async fn fetch_latest_pairs() -> Result<Vec<PairData>, Box<dyn std::error::Error>> {
     let url = "https://api.dexscreener.com/latest/dex/pairs";
